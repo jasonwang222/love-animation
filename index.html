@@ -226,12 +226,12 @@
         if (Math.random() < 0.7){
             var s = Math.random() * arcTotal;
             var p = pointAtArc(s);
-            return { x: p.x + (Math.random()-0.5)*0.5, y: p.y + (Math.random()-0.5)*0.5 };
+            return { x: p.x + (Math.random()-0.5)*0.2, y: p.y + (Math.random()-0.5)*0.2 };
         } else {
             var t = Math.random() * Math.PI * 2;
             var p = heartParam(t);
-            var r = 0.15 + Math.random() * 0.7;
-            return { x: p.x * r + (Math.random()-0.5)*0.8, y: p.y * r + (Math.random()-0.5)*0.8 };
+            var r = 0.15 + Math.random() * 0.65;
+            return { x: p.x * r + (Math.random()-0.5)*0.4, y: p.y * r + (Math.random()-0.5)*0.4 };
         }
     }
 
@@ -239,15 +239,16 @@
         W = stage.clientWidth;
         H = stage.clientHeight;
         // 心形宽约32、高约22，映射到屏幕
-        scale = Math.min(W * 0.032, H * 0.035, 15);
+        // 加上 yMid 偏移让爱心垂直居中，尺寸适配窄屏手机（375px宽）
+        scale = Math.min(W * 0.027, H * 0.032, 13);
         cx = W / 2;
-        cy = H * 0.46;
+        cy = H * 0.48;
         // 重新定位已有气泡
         for (var i = 0; i < bubbles.length; i++){
             var b = bubbles[i];
             if (!b) continue;
             b.el.style.left = (cx + b.pt.x * scale) + "px";
-            b.el.style.top = (cy - b.pt.y * scale) + "px";
+            b.el.style.top = (cy - (b.pt.y - (-6)) * scale) + "px";
         }
     }
 
@@ -296,7 +297,7 @@
         }
         el.style.backgroundColor = color;
         el.style.left = (cx + pt.x * scale) + "px";
-        el.style.top = (cy - pt.y * scale) + "px";
+        el.style.top = (cy - (pt.y - (-6)) * scale) + "px";
         el.style.zIndex = String(10 + spawnCount);
         stage.appendChild(el);
         requestAnimationFrame(function(){
