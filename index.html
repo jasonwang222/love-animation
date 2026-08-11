@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#f4f1ea">
+<title>一份神秘礼物</title>
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        -webkit-tap-highlight-color: transparent;
+        -webkit-touch-callout: none;
+        font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
+    }
+
+    html, body {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #f4f1ea;
+        position: fixed;
+        overscroll-behavior: none;
+        -webkit-user-select: none;
+        user-select: none;
+    }
+
+    /* 手机外壳模拟 */
+    .phone {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        background: #f4f1ea;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* 状态栏（灵动岛） */
+    .status-bar {
+        position: relative;
+        height: 44px;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 24px;
+        padding-top: env(safe-area-inset-top, 0px);
+        background: #faf8f3;
+        z-index: 20;
+    }
+
+    .status-time {
+        font-size: 15px;
+        font-weight: 600;
+        color: #1a1a1a;
+        letter-spacing: 0.02em;
+    }
+
+    .status-right {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .signal {
+        display: flex;
+        align-items: flex-end;
+        gap: 2px;
+        height: 12px;
+    }
+    .signal i {
+        display: block;
+        width: 3px;
+        background: #1a1a1a;
+        border-radius: 1px;
+    }
+    .signal i:nth-child(1){height:4px}
+    .signal i:nth-child(2){height:6px}
+    .signal i:nth-child(3){height:8px}
+    .signal i:nth-child(4){height:10px}
+
+    .net {
+        font-size: 12px;
+        font-weight: 700;
+        color: #1a1a1a;
+        margin-left: 2px;
+    }
+
+    .battery {
+        position: relative;
+        width: 26px;
+        height: 13px;
+        border: 1.5px solid #1a1a1a;
+        border-radius: 3px;
+        margin-left: 4px;
+    }
+    .battery::after {
+        content: "";
+        position: absolute;
+        right: -3px;
+        top: 3px;
+        width: 2px;
+        height: 5px;
+        background: #1a1a1a;
+        border-radius: 0 1px 1px 0;
+    }
+    .battery i {
+        display: block;
+        height: 100%;
+        width: 38%;
+        background: #1a1a1a;
+        border-radius: 1px;
+    }
+
+    /* 灵动岛 */
+    .island {
+        position: absolute;
+        top: calc(env(safe-area-inset-top, 0px) + 8px);
+        left: 50%;
+        transform: translateX(-50%);
+        width: 95px;
+        height: 28px;
+        background: #000;
+        border-radius: 20px;
+        z-index: 21;
+    }
+
+    /* 导航栏 */
+    .nav-bar {
+        height: 44px;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 16px;
+        background: #faf8f3;
+        border-bottom: 1px solid rgba(0,0,0,0.04);
+        z-index: 19;
+    }
+    .nav-back {
+        font-size: 22px;
+        color: #1a1a1a;
+        line-height: 1;
+        opacity: 0.85;
+    }
+    .nav-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: #1a1a1a;
+    }
+    .nav-icons {
+        display: flex;
+        gap: 14px;
+        color: #1a1a1a;
+        opacity: 0.85;
+    }
+    .nav-icons span { font-size: 17px; line-height: 1; }
+
+    /* 爱心容器 */
+    .heart-stage {
+        flex: 1;
+        position: relative;
+        overflow: hidden;
+        background: #f4f1ea;
+    }
+
+    /* 气泡 */
+    .bubble {
+        position: absolute;
+        left: 50%;
+        top: 42%;
+        white-space: nowrap;
+        font-size: 11.5px;
+        line-height: 1.4;
+        padding: 6px 11px;
+        border-radius: 14px;
+        color: #6b4a3a;
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.3);
+        transition: opacity 0.6s ease, transform 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
+        box-shadow: 0 2px 6px rgba(180,140,120,0.12);
+        border: 1px solid rgba(255,255,255,0.55);
+        font-weight: 500;
+        pointer-events: none;
+        will-change: transform, opacity;
+    }
+    .bubble.show {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+    .bubble.inner.show {
+        opacity: 0.88;
+    }
+    /* 气泡小箭头（左/右） */
+    .bubble.left::before {
+        content: "";
+        position: absolute;
+        left: -3px;
+        bottom: 8px;
+        width: 8px;
+        height: 8px;
+        background: inherit;
+        border-radius: 2px;
+        transform: rotate(45deg);
+    }
+    .bubble.right::after {
+        content: "";
+        position: absolute;
+        right: -3px;
+        bottom: 8px;
+        width: 8px;
+        height: 8px;
+        background: inherit;
+        border-radius: 2px;
+        transform: rotate(45deg);
+    }
+
+    /* 底部祝福语 */
+    .blessing {
+        position: absolute;
+        bottom: calc(env(safe-area-inset-bottom, 0px) + 22px);
+        left: 0;
+        right: 0;
+        text-align: center;
+        z-index: 10;
+        opacity: 0;
+        transition: opacity 1.4s ease;
+        pointer-events: none;
+    }
+    .blessing.show { opacity: 1; }
+    .blessing .b1 {
+        font-size: 14px;
+        color: #b0705a;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-shadow: 0 1px 2px rgba(200,120,100,0.15);
+    }
+    .blessing .b2 {
+        margin-top: 6px;
+        font-size: 11px;
+        color: #c4a08a;
+        letter-spacing: 0.16em;
+        font-weight: 400;
+    }
+
+    /* 轻触涟漪 */
+    .ripple {
+        position: absolute;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(255,160,150,0.4) 0%, transparent 70%);
+        pointer-events: none;
+        animation: rippleAnim 0.9s ease-out forwards;
+        z-index: 9;
+    }
+    @keyframes rippleAnim {
+        0% { transform: translate(-50%,-50%) scale(0); opacity: 0.8; }
+        100% { transform: translate(-50%,-50%) scale(4); opacity: 0; }
+    }
+
+    .replay-hint {
+        position: absolute;
+        top: 14px;
+        right: 16px;
+        z-index: 15;
+        font-size: 11px;
+        color: #c9a89a;
+        background: rgba(255,255,255,0.7);
+        padding: 5px 11px;
+        border-radius: 20px;
+        opacity: 0;
+        transition: opacity 0.5s ease;
+        pointer-events: auto;
+        backdrop-filter: blur(4px);
+    }
+    .replay-hint.show { opacity: 1; }
+</style>
+</head>
+<body>
+<div class="phone">
+    <!-- 状态栏 -->
+    <div class="status-bar">
+        <div class="status-time" id="clock">9:41</div>
+        <div class="island"></div>
+        <div class="status-right">
+            <div class="signal"><i></i><i></i><i></i><i></i></div>
+            <div class="net">5G</div>
+            <div class="battery"><i></i></div>
+        </div>
+    </div>
+    <!-- 导航栏 -->
+    <div class="nav-bar">
+        <div class="nav-back">‹</div>
+        <div class="nav-title">一份神秘礼物</div>
+        <div class="nav-icons"><span>🔍</span><span>⋯</span></div>
+    </div>
+    <!-- 爱心舞台 -->
+    <div class="heart-stage" id="stage">
+        <div class="replay-hint" id="replayHint">轻触重播</div>
+        <div class="blessing" id="blessing">
+            <div class="b1">代码只有几十行，对你的思念却远远不止</div>
+            <div class="b2">— 每一句都是想你 —</div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function(){
+    "use strict";
+    var stage = document.getElementById("stage");
+    var blessing = document.getElementById("blessing");
+    var replayHint = document.getElementById("replayHint");
+
+    // 关怀文案（左右交替模拟聊天）
+    var messages = [
+        "我们都在你身边",
+        "略略略加油哦",
+        "你一定要开心",
+        "以后会好起来的",
+        "我们会买车子买房子的",
+        "多吃水果",
+        "下次见你就变得更加大美女了",
+        "我会想你的",
+        "我们俩要好好的",
+        "略略略少熬夜",
+        "略略略要记得多动噢",
+        "略略略少生王一涵的气呗",
+        "多喝水！！！",
+        "你是最棒的",
+        "想你了噢",
+        "谢谢略略略大老板一直在请我吃东西",
+        "以后赚钱了给你买想要的",
+        "我们会有机会见面的",
+        "照顾好自己哦",
+        "不要和烂人一般见识",
+        "记得好好吃饭",
+        "不要害怕未来",
+        "拿一个大大的offer",
+        "略略略赚钱养我哦嘻嘻嘻",
+        "略略略好想你",
+        "王一涵在绍兴和永兴很想你",
+        "略略略是小笨蛋",
+        "略略略坐车不晕车",
+        "略略略一路顺风",
+        "保持好心情",
+        "我们都会如愿以偿",
+        "梦想成真",
+        "顺顺利利",
+        "抱抱你",
+        "累了就休息一下下",
+        "等待不被辜负",
+        "你真的挺坚强的",
+        "吃好吃的有幸福感",
+        "不开心记得和我说"
+    ];
+
+    // 暖色气泡背景
+    var colors = [
+        "#fff3d6", "#ffe8d1", "#ffd9c9", "#ffd0d8",
+        "#ffe9c2", "#fde2d4", "#ffd6e0", "#fff0db",
+        "#ffe2c4", "#ffdcdc", "#fff5e0", "#ffd2d8",
+        "#ffe6cc", "#ffddee", "#fff8e8", "#ffd4c0"
+    ];
+
+    // 心形参数方程（y正向上，心尖朝下在y负方向）
+    function heartParam(t){
+        var x = 16 * Math.pow(Math.sin(t), 3);
+        var y = 13*Math.cos(t) - 5*Math.cos(2*t) - 2*Math.cos(3*t) - Math.cos(4*t);
+        return { x: x, y: y };
+    }
+
+    var bubbles = [];
+    var W = 0, H = 0, scale = 1, cx = 0, cy = 0;
+
+    // 数组随机洗牌
+    function shuffle(arr){
+        for (var i = arr.length - 1; i > 0; i--){
+            var j = Math.floor(Math.random() * (i + 1));
+            var tmp = arr[i]; arr[i] = arr[j]; arr[j] = tmp;
+        }
+    }
+
+    // 预采样心形轮廓（用于等弧长取点）
+    var arcSamples = [], arcTotal = 0;
+    (function initArc(){
+        var N = 800, prev = heartParam(0), cum = 0;
+        arcSamples.push({ x: prev.x, y: prev.y, s: 0 });
+        for (var i = 1; i <= N; i++){
+            var t = (i / N) * Math.PI * 2;
+            var p = heartParam(t);
+            var d = Math.sqrt((p.x-prev.x)*(p.x-prev.x) + (p.y-prev.y)*(p.y-prev.y));
+            cum += d;
+            arcSamples.push({ x: p.x, y: p.y, s: cum });
+            prev = p;
+        }
+        arcTotal = cum;
+    })();
+
+    function pointAtArc(s){
+        s = ((s % arcTotal) + arcTotal) % arcTotal;
+        var lo = 0, hi = arcSamples.length - 1;
+        while (lo < hi){ var mid = (lo+hi)>>1; if (arcSamples[mid].s < s) lo = mid+1; else hi = mid; }
+        return arcSamples[Math.max(0, lo-1)];
+    }
+
+    // 随机取心形上一点（阶段感知：轮廓阶段偏轮廓，叠加阶段偏内填）
+    function randomHeartPoint(){
+        var outlineRatio = (phase === 0) ? 0.88 : 0.35; // 叠加阶段内填为主，中心快速填满
+        if (Math.random() < outlineRatio){
+            // 轮廓：均匀弧长分布
+            var s = Math.random() * arcTotal;
+            var p = pointAtArc(s);
+            var j = 0.25;
+            return { x: p.x + (Math.random()-0.5)*j, y: p.y + (Math.random()-0.5)*j };
+        } else {
+            // 内填：缩小心形半径随机
+            var t = Math.random() * Math.PI * 2;
+            var p = heartParam(t);
+            var r = 0.15 + Math.random() * 0.65;
+            return { x: p.x * r + (Math.random()-0.5)*0.4, y: p.y * r + (Math.random()-0.5)*0.4 };
+        }
+    }
+
+    function layout(){
+        W = stage.clientWidth;
+        H = stage.clientHeight;
+        // 心形参数方程宽约32、高约22，映射到屏幕（设上限避免大屏过空）
+        scale = Math.min(W * 0.029, H * 0.031, 13.5);
+        cx = W / 2;
+        cy = H * 0.48;
+        // 已有气泡重新定位
+        var yMid = -6;
+        var baseFont = Math.max(12, scale * 1.35);
+        for (var i = 0; i < bubbles.length; i++){
+            var b = bubbles[i];
+            if (!b) continue;
+            b.el.style.left = (cx + b.pt.x * scale) + "px";
+            b.el.style.top = (cy - (b.pt.y - yMid) * scale) + "px";
+        }
+    }
+
+    // 持续生成系统
+    var MAX_BUBBLES = 110;      // 屏幕上最多气泡数（增大，避免过快消失）
+    var spawnTimer = null;
+    var spawnCount = 0;
+    var blessingShown = false;
+    var phase = 0; // 0=轮廓铺设阶段, 1=持续叠加阶段
+    var outlineQueue = []; // 轮廓点队列
+
+    function spawnOne(){
+        var pt, msgIdx, colorIdx;
+        if (phase === 0 && outlineQueue.length > 0){
+            // 阶段1：按顺序沿轮廓铺设（保证爱心形状完整）
+            pt = outlineQueue.shift();
+            msgIdx = Math.floor(Math.random() * messages.length);
+            colorIdx = Math.floor(Math.random() * colors.length);
+        } else {
+            phase = 1;
+            // 阶段2：持续随机叠加
+            pt = randomHeartPoint();
+            msgIdx = Math.floor(Math.random() * messages.length);
+            colorIdx = Math.floor(Math.random() * colors.length);
+        }
+
+        var msg = messages[msgIdx];
+        var color = colors[colorIdx];
+
+        var el = document.createElement("div");
+        el.className = "bubble " + (Math.random()<0.5 ? "left" : "right");
+        el.textContent = msg;
+        var len = msg.length;
+        if (len > 12){
+            el.style.fontSize = "10px";
+            el.style.maxWidth = "120px";
+            el.style.whiteSpace = "normal";
+            el.style.textAlign = "center";
+        } else {
+            el.style.fontSize = (12 + Math.floor(Math.random()*3)) + "px";
+        }
+        el.style.backgroundColor = color;
+        var yMid = -6;
+        el.style.left = (cx + pt.x * scale) + "px";
+        el.style.top = (cy - (pt.y - yMid) * scale) + "px";
+        el.style.zIndex = String(10 + spawnCount);
+        stage.appendChild(el);
+        requestAnimationFrame(function(){
+            el.classList.add("show");
+        });
+
+        bubbles.push({ el: el, pt: pt, zIndex: 10 + spawnCount });
+        spawnCount++;
+
+        if (navigator.vibrate && spawnCount % 4 === 0) navigator.vibrate(5);
+
+        // 达到上限：只移除"已被遮住"的气泡
+        if (bubbles.length > MAX_BUBBLES){
+            removeCoveredBubble();
+        }
+
+        // 轮廓铺完后显示祝福语
+        if (!blessingShown && phase === 1){
+            blessingShown = true;
+            blessing.classList.add("show");
+            replayHint.classList.add("show");
+        }
+    }
+
+    // 只移除被其他气泡遮住的旧气泡（保持爱心完整）
+    function removeCoveredBubble(){
+        for (var i = 0; i < bubbles.length; i++){
+            var b = bubbles[i];
+            if (b.removing) continue;
+            // 检查是否有 3 个以上更高 z-index 的气泡覆盖它
+            var coverCount = 0;
+            var bx = b.pt.x, by = b.pt.y;
+            for (var j = bubbles.length - 1; j > i; j--){
+                var ob = bubbles[j];
+                if (ob.removing) continue;
+                var dx = ob.pt.x - bx;
+                var dy = ob.pt.y - by;
+                if (dx*dx + dy*dy < 9){ // 距离够近算覆盖
+                    coverCount++;
+                    if (coverCount >= 3) break;
+                }
+            }
+            if (coverCount >= 3){
+                b.removing = true;
+                b.el.style.transition = "opacity 1.8s ease, transform 1.8s ease";
+                b.el.style.opacity = "0";
+                b.el.style.transform = "translate(-50%,-50%) scale(0.7)";
+                (function(node, ref){
+                    setTimeout(function(){
+                        if (node.parentNode) node.parentNode.removeChild(node);
+                        var idx = bubbles.indexOf(ref);
+                        if (idx >= 0) bubbles.splice(idx, 1);
+                    }, 1850);
+                })(b.el, b);
+                return; // 一次只移除一个
+            }
+        }
+    }
+
+    function startSpawn(){
+        stopSpawn();
+        blessingShown = false;
+        phase = 0;
+        blessing.classList.remove("show");
+        replayHint.classList.remove("show");
+        // 准备轮廓点：沿心形等弧长均匀取 22 个点
+        outlineQueue = [];
+        var nOutline = 22;
+        for (var i = 0; i < nOutline; i++){
+            var s = (i / nOutline) * arcTotal;
+            var p = pointAtArc(s);
+            outlineQueue.push({
+                x: p.x + (Math.random()-0.5)*0.2,
+                y: p.y + (Math.random()-0.5)*0.2
+            });
+        }
+        // 速度：每 120ms 生成一个（适中，不会太快）
+        spawnTimer = setInterval(spawnOne, 120);
+    }
+
+    function stopSpawn(){
+        if (spawnTimer){ clearInterval(spawnTimer); spawnTimer = null; }
+    }
+
+    function clearAllBubbles(){
+        stopSpawn();
+        for (var i = 0; i < bubbles.length; i++){
+            if (bubbles[i].el.parentNode) bubbles[i].el.parentNode.removeChild(bubbles[i].el);
+        }
+        bubbles = [];
+        spawnCount = 0;
+    }
+
+    // 时钟
+    function updateClock(){
+        var d = new Date();
+        var h = d.getHours();
+        var m = d.getMinutes();
+        document.getElementById("clock").textContent = h + ":" + (m<10?"0"+m:m);
+    }
+
+    // 轻触涟漪 + 重播
+    var canReplay = false;
+    function replay(){
+        // 清除所有气泡重新开始
+        clearAllBubbles();
+        startSpawn();
+    }
+    stage.addEventListener("click", function(e){
+        // 涟漪
+        var r = document.createElement("div");
+        r.className = "ripple";
+        r.style.left = e.clientX + "px";
+        r.style.top = (e.clientY) + "px";
+        r.style.width = "80px";
+        r.style.height = "80px";
+        stage.appendChild(r);
+        setTimeout(function(){ if(r.parentNode) r.parentNode.removeChild(r); }, 900);
+        if (canReplay){
+            replay();
+            if (navigator.vibrate) navigator.vibrate(15);
+        }
+    });
+    stage.addEventListener("touchstart", function(e){
+        e.preventDefault();
+        var t = e.touches[0];
+        var r = document.createElement("div");
+        r.className = "ripple";
+        r.style.left = t.clientX + "px";
+        r.style.top = t.clientY + "px";
+        r.style.width = "80px";
+        r.style.height = "80px";
+        stage.appendChild(r);
+        setTimeout(function(){ if(r.parentNode) r.parentNode.removeChild(r); }, 900);
+        if (canReplay){
+            replay();
+            if (navigator.vibrate) navigator.vibrate(15);
+        }
+    }, { passive: false });
+
+    document.addEventListener("touchmove", function(e){ e.preventDefault(); }, { passive: false });
+    document.addEventListener("gesturestart", function(e){ e.preventDefault(); });
+
+    var rt;
+    window.addEventListener("resize", function(){ clearTimeout(rt); rt=setTimeout(layout,150); });
+    window.addEventListener("orientationchange", function(){ setTimeout(layout,250); });
+
+    // 启动
+    updateClock();
+    setInterval(updateClock, 30000);
+    layout();
+    // 延迟一点点再播放，确保布局稳定
+    setTimeout(function(){
+        startSpawn();
+        setTimeout(function(){ canReplay = true; }, 100);
+    }, 300);
+})();
+</script>
+</body>
+</html>
